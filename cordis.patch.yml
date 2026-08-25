@@ -1,0 +1,25 @@
+# @aphroditee666/dsh-best-sidebar bundle patch
+#
+# This file is the `dsh.bundle.patch` layer of the published npm package: when
+# the plugin is installed through the official CLI —
+#
+#   dsh plugin --profile <name> add @aphroditee666/dsh-best-sidebar@<version>
+#
+# — the command reconciles `dsh.profile.bundles` against installed packages
+# and, seeing this declaration, appends `@aphroditee666/dsh-best-sidebar` to
+# the bundle stack. The profile boot then merges THIS patch (a single
+# `insert` of the plugin row) exactly like a manual cordis.patch.yml mount
+# line. No profile file edits needed — one command installs and mounts.
+#
+# Fork of dsh-better-sidebar (upstream github.com/omdsh-dev/DSH-better-sidebar).
+# Extra behavior: silent auto-refresh file tree (2s change-detection poll),
+# right-click new folder/file, drag a file into the conversation composer to
+# insert its absolute path at the caret.
+#
+# Double-mount guard: if another *enabled* entry already mounts this package
+# under a different id, back this row off (avoids duplicated `/sidebar/api`
+# routes and two sidebars).
+- insert:
+    - id: best-sidebar
+      name: '@aphroditee666/dsh-best-sidebar'
+      disabled: !!js "[...ctx.loader.entries()].some((e) => e.options.name === '@aphroditee666/dsh-best-sidebar' && e.options.id !== 'best-sidebar' && !e.disabled)"
