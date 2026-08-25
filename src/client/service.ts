@@ -458,7 +458,7 @@ export function matchUrlTarget(tabs: readonly TabDescriptor[], url: URL): TabDes
     try {
       claimed = tab.urlTarget(url) === true
     } catch (error) {
-      console.error('[dsh-better-sidebar] urlTarget error:', error)
+      console.error('[dsh-best-sidebar] urlTarget error:', error)
       continue
     }
     if (claimed) return tab
@@ -504,7 +504,7 @@ function safeCall(fn: () => void): void {
   try {
     fn()
   } catch (error) {
-    console.error('[dsh-better-sidebar] plugin callback error:', error)
+    console.error('[dsh-best-sidebar] plugin callback error:', error)
   }
 }
 
@@ -529,7 +529,7 @@ export function createBetterSidebarService(store: SidebarStore): BetterSidebarSe
 
   const registerTab = (descriptor: TabDescriptor): (() => void) => {
     if (tabs.has(descriptor.id)) {
-      throw new Error(`[dsh-better-sidebar] tab type "${descriptor.id}" already registered`)
+      throw new Error(`[dsh-best-sidebar] tab type "${descriptor.id}" already registered`)
     }
     tabs.set(descriptor.id, descriptor)
     notify()
@@ -543,7 +543,7 @@ export function createBetterSidebarService(store: SidebarStore): BetterSidebarSe
 
   const registerFileViewer = (descriptor: FileViewerDescriptor): (() => void) => {
     if (viewers.has(descriptor.id)) {
-      throw new Error(`[dsh-better-sidebar] file viewer "${descriptor.id}" already registered`)
+      throw new Error(`[dsh-best-sidebar] file viewer "${descriptor.id}" already registered`)
     }
     viewers.set(descriptor.id, descriptor)
     notify()
@@ -599,7 +599,7 @@ export function createBetterSidebarService(store: SidebarStore): BetterSidebarSe
     // + menu nor from derived flows (file opens, subagent auto-open,
     // external plugins). Already-open tabs keep rendering.
     if (!isTabEnabled(seed.type)) {
-      console.warn(`[dsh-better-sidebar] tab type "${seed.type}" is disabled in the side card settings`)
+      console.warn(`[dsh-best-sidebar] tab type "${seed.type}" is disabled in the side card settings`)
       return
     }
     const descriptor = tabs.get(seed.type)

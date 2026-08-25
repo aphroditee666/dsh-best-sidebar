@@ -187,6 +187,9 @@ export const api = {
     call<FsTextResult | FsBinaryResult>('fs.read', scopePayload(scope, { path }), signal),
   fsWrite: (scope: SessionScope, path: string, content: string) =>
     call<{ ok: true }>('fs.write', scopePayload(scope, { path, content })),
+  /** Create one directory (non-recursive); wire method `fs.createDirectory`. */
+  fsCreateDir: (scope: SessionScope, path: string) =>
+    call<{ ok: true }>('fs.createDirectory', scopePayload(scope, { path })),
   /** Upload one file's raw bytes into `dir` (keeps the folder tree via
    *  `relativePath`); the host streams it under the session workspace. */
   uploadFile: (scope: SessionScope, dir: string, relativePath: string, body: Blob, signal?: AbortSignal) =>

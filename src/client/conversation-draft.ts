@@ -23,7 +23,7 @@ export function appendToDraft(ctx: Context, sessionId: string, text: string): bo
     input.setDraft(draft.trim() === '' ? text : `${draft} ${text}`)
     return true
   } catch (error) {
-    console.warn('[dsh-better-sidebar] draft insert failed:', error)
+    console.warn('[dsh-best-sidebar] draft insert failed:', error)
     return false
   }
 }

@@ -147,7 +147,7 @@ function isPluginRoot(dir: string): boolean {
   if (!existsSync(file)) return false
   try {
     const parsed = JSON.parse(readFileSync(file, 'utf8')) as { name?: unknown }
-    return parsed.name === 'dsh-better-sidebar'
+    return parsed.name === '@aphroditee666/dsh-best-sidebar'
   } catch {
     return false
   }

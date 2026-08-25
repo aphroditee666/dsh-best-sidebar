@@ -10,7 +10,7 @@
  * disposal, so the adaptation remains HMR-safe.
  */
 
-export const SETTINGS_NAV_MARKER = 'data-dsh-better-sidebar-settings-nav'
+export const SETTINGS_NAV_MARKER = 'data-dsh-best-sidebar-settings-nav'
 
 /**
  * Keep the marker on the settings-nav button whose visible text is this

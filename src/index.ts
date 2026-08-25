@@ -54,7 +54,7 @@ import { readJsonBody, requireString, SidebarError, writeError, writeJson, write
 export { Config }
 export type { SidebarConfig, ResolvedSidebarConfig }
 // Re-export the Context augmentation (declare module 'cordis') so consumers
-// `import type {} from 'dsh-better-sidebar'` and gain `ctx.betterSidebar`.
+// `import type {} from '@aphroditee666/dsh-best-sidebar'` and gain `ctx.betterSidebar`.
 // Also re-export the service descriptor types so consumers can type their
 // registerTab / registerFileViewer arguments without reaching into /client.
 export type { Context } from './context-types.ts'
@@ -68,7 +68,7 @@ export type {
 } from './client/service.ts'
 
 /** Plugin identity for cordis.yml rows. */
-export const name = 'dsh-better-sidebar'
+export const name = '@aphroditee666/dsh-best-sidebar'
 
 /** Services required before mounting: the webserver routes, the session store, the web runtime's trusted hosts, and the tool registry. */
 export const inject = ['webServer', 'sessions', 'webRuntime', 'tools']
@@ -279,6 +279,16 @@ function buildApi(
       } catch (error) {
         await rm(tmp, { force: true }).catch(() => {})
         throw new SidebarError('fs-error', `cannot write "${path}": ${error instanceof Error ? error.message : String(error)}`, 400)
+      }
+      return { ok: true }
+    },
+    'fs.createDirectory': async (payload) => {
+      const { cwd } = cwdOf(payload)
+      const path = requireAbsolute(requireString(payload, 'path'))
+      try {
+        await mkdir(path, { recursive: false })
+      } catch (error) {
+        throw new SidebarError('fs-error', `cannot create directory "${path}": ${error instanceof Error ? error.message : String(error)}`, 400)
       }
       return { ok: true }
     },
@@ -522,7 +532,7 @@ export function apply(ctx: Context, config?: SidebarConfig): void {
     const detail = status.ok
       ? 'unknown cause'
       : `${status.cause}. Repair: ${status.command}`
-    ctx.logger?.warn(`[dsh-better-sidebar] node-pty (${DSH_NODE_PTY_RANGE}) failed to load: ${detail}`)
+    ctx.logger?.warn(`[dsh-best-sidebar] node-pty (${DSH_NODE_PTY_RANGE}) failed to load: ${detail}`)
   }
   const ptyManager = nodePty !== null
     ? new PtyManager(terminalShell, resolved.terminalsPerSession, resolved.shellArgs, nodePty)
@@ -638,7 +648,7 @@ export function apply(ctx: Context, config?: SidebarConfig): void {
         writeError(res, error)
       }
     },
-  }), 'dsh-better-sidebar: /sidebar/api routes')
+  }), 'dsh-best-sidebar: /sidebar/api routes')
 
   // ── Raw upload route ───────────────────────────────────────────────────
   // One request writes one file without JSON/base64 inflation. Folder uploads
@@ -679,13 +689,13 @@ export function apply(ctx: Context, config?: SidebarConfig): void {
         writeError(res, error)
       }
     },
-  }), 'dsh-better-sidebar: /sidebar/upload route')
+  }), 'dsh-best-sidebar: /sidebar/upload route')
 
   // ── Lazy chunk route (client bundle splits) ─────────────────────────────
   // Serves the client half's split bundles (lib/client-<name>.js) so the
   // heavy preview/terminal libraries load on first use, not at page start
   // (see bundle-route.ts / src/client/chunk-loader.ts).
-  ctx.effect(() => registerBundleRoute(ctx, fence), 'dsh-better-sidebar: /sidebar/bundle chunk route')
+  ctx.effect(() => registerBundleRoute(ctx, fence), 'dsh-best-sidebar: /sidebar/bundle chunk route')
 
   // ── Media route (images for the editor) ─────────────────────────────────
   ctx.effect(() => ctx.webServer.register({
@@ -734,7 +744,7 @@ export function apply(ctx: Context, config?: SidebarConfig): void {
         writeError(res, error)
       }
     },
-  }), 'dsh-better-sidebar: /sidebar/file media route')
+  }), 'dsh-best-sidebar: /sidebar/file media route')
 
   // ── HTML preview route (sandboxed HTML + its relative assets) ───────────
   // Serves files under the session cwd for the built-in HTML previewer. The
@@ -798,7 +808,7 @@ export function apply(ctx: Context, config?: SidebarConfig): void {
         writeError(res, error)
       }
     },
-  }), 'dsh-better-sidebar: /sidebar/html preview route')
+  }), 'dsh-best-sidebar: /sidebar/html preview route')
 
   // ── Terminal WebSocket ──────────────────────────────────────────────────
   // One upgrade endpoint serves both UI-tab terminals (?tab=...) and
@@ -822,7 +832,7 @@ export function apply(ctx: Context, config?: SidebarConfig): void {
         void attachTerminal(ctx, ptyManager, agentPtyRegistry, ws, req, resolved, () => settingsFace)
       })
     },
-  }), 'dsh-better-sidebar: terminal WebSocket')
+  }), 'dsh-best-sidebar: terminal WebSocket')
 
   // ── Agent terminals push WebSocket ──────────────────────────────────────
   // Pushes the live list of agent terminals for one session to the sidebar
@@ -844,7 +854,7 @@ export function apply(ctx: Context, config?: SidebarConfig): void {
         void attachAgentList(agentPtyRegistry, ws, req)
       })
     },
-  }), 'dsh-better-sidebar: agent-terminals push WebSocket')
+  }), 'dsh-best-sidebar: agent-terminals push WebSocket')
 
   ctx.effect(() => () => {
     toolsDisposers?.()
@@ -852,7 +862,7 @@ export function apply(ctx: Context, config?: SidebarConfig): void {
     agentPtyRegistry?.disposeAll()
     wss.close()
     agentListWss.close()
-  }, 'dsh-better-sidebar: teardown')
+  }, 'dsh-best-sidebar: teardown')
 }
 
 /** Push the live agent-terminal list for one session to a connected sidebar view. */

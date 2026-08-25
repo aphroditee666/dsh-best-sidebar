@@ -7,8 +7,8 @@
  * 文件预览 grids).
  */
 
-/** The GitHub topic page listing every repo tagged `dsh-better-sidebar`. */
-export const PLUGIN_TOPIC_URL = 'https://github.com/topics/dsh-better-sidebar'
+/** The GitHub topic page listing every repo tagged `dsh-best-sidebar`. */
+export const PLUGIN_TOPIC_URL = 'https://github.com/topics/dsh-best-sidebar'
 
 /** One curated plugin entry (name / url / description / install script). */
 export interface PluginEntry {

@@ -116,6 +116,10 @@ export declare const api: {
     fsWrite: (scope: SessionScope, path: string, content: string) => Promise<{
         ok: true;
     }>;
+    /** Create one directory (non-recursive); wire method `fs.createDirectory`. */
+    fsCreateDir: (scope: SessionScope, path: string) => Promise<{
+        ok: true;
+    }>;
     /** Upload one file's raw bytes into `dir` (keeps the folder tree via
      *  `relativePath`); the host streams it under the session workspace. */
     uploadFile: (scope: SessionScope, dir: string, relativePath: string, body: Blob, signal?: AbortSignal) => Promise<{

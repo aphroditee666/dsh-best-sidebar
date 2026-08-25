@@ -73,6 +73,35 @@ export function TreePanel(props: {
   const cancelledRef = useRef(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const folderInputRef = useRef<HTMLInputElement>(null)
+  // [archify] Silent auto-refresh: poll the visible tree levels every 2s, then
+  // bump the refresh tick only when the content signature actually changed —
+  // never wipe/reload on an empty poll, so the tree doesn't flicker. Pauses
+  // while the tab (or phone screen) is hidden.
+  const autoExpandedRef = useRef(expanded)
+  autoExpandedRef.current = expanded
+  const autoSigRef = useRef('')
+  useEffect(() => {
+    const timer = setInterval(async () => {
+      if (document.visibilityState !== 'visible') return
+      try {
+        const dirs = [cwd, ...autoExpandedRef.current].filter((d): d is string => d !== undefined)
+        const sig = JSON.stringify(await Promise.all(dirs.map(async (d) => {
+          try {
+            const listing = await api.fsTree({ sessionId, cwd }, d)
+            const names = (listing.entries ?? []).map(e => e.path).sort()
+            return d + '=' + names.join(',')
+          } catch {
+            return d + '=ERR'
+          }
+        })))
+        if (autoSigRef.current !== '' && autoSigRef.current !== sig) setRefreshTick(tick => tick + 1)
+        autoSigRef.current = sig
+      } catch {
+        /* ignore transient failures */
+      }
+    }, 2000)
+    return () => clearInterval(timer)
+  }, [sessionId, cwd])
 
   /** Start one upload session into `dir` (absolute, inside the workspace). */
   const startUpload = (dir: string, items: UploadItem[]): void => {
@@ -219,6 +248,7 @@ export function TreePanel(props: {
           onOpenFileSide={onOpenFileSide}
           onReferenceFile={onReferenceFile}
           refreshTick={refreshTick}
+          onRefresh={() => { setRefreshTick(tick => tick + 1) }}
           onUploadRequest={startUpload}
           busy={busy}
         />

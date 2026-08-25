@@ -84,7 +84,7 @@ export function registerTurnTailInterception(ctx: Context, store: SidebarStore):
       return selectProducedFiles(owner)
     },
     priority: -1,
-    registrant: 'dsh-better-sidebar',
+    registrant: '@aphroditee666/dsh-best-sidebar',
     inject: (sessionId: string) => ({
       openInSidebar: (path: string) => { openSidebarFile(ctx, store, sessionId, path) },
     }),

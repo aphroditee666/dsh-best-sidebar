@@ -6,7 +6,7 @@
  * the browser bundle never pulls the schema runtime in.
  */
 /** The user-settings namespace holding the side card preferences. */
-export declare const SIDEBAR_PREFS_NS = "dsh-better-sidebar";
+export declare const SIDEBAR_PREFS_NS = "@aphroditee666/dsh-best-sidebar";
 /** User-facing side card preferences (new-conversation defaults). */
 export interface SidebarPrefs {
     /** Whether a brand-new conversation opens the side card by default. */

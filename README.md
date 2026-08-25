@@ -27,7 +27,7 @@ dsh web
 
 ## 注意事项
 
-- 本包 `lib/`（构建产物）**已包含上述补丁**；`src/` 为上游原版源码。若在本目录重新执行 `pnpm install && pnpm build`，会重建出**不带补丁**的 `lib/`（不要这样做；需要改动请直接编辑本仓库内的 `lib/` 产物并重新打包）。
+- 本包**源码（`src/`）已内置上述补丁**，可正常执行 `pnpm install && pnpm build` 重建 `lib/`（产物会自动使用新包名与补丁），不会丢失功能。
 - `dsh plugin remove @aphroditee666/dsh-best-sidebar` 可卸载。
 - 升级 DSH 需要配套升级本插件（DSH 仍为预发布阶段，RC 间客户端接口可能变化）。
 

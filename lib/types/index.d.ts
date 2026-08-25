@@ -5,7 +5,7 @@ export type { SidebarConfig, ResolvedSidebarConfig };
 export type { Context } from './context-types.ts';
 export type { BetterSidebarService, TabDescriptor, TabComponentProps, FileViewerDescriptor, FileViewerProps, FileFetchStrategy, } from './client/service.ts';
 /** Plugin identity for cordis.yml rows. */
-export declare const name = "dsh-better-sidebar";
+export declare const name = "@aphroditee666/dsh-best-sidebar";
 /** Services required before mounting: the webserver routes, the session store, the web runtime's trusted hosts, and the tool registry. */
 export declare const inject: string[];
 /** Content type served by /sidebar/file (binary-safe fallback for unknowns). */

@@ -1,5 +1,5 @@
 /**
- * Client half of dsh-better-sidebar: resolves the user's "Side card"
+ * Client half of dsh-best-sidebar: resolves the user's "Side card"
  * preferences through the plugin's own fenced settings route, mounts the
  * right sidebar portal (inside an error boundary so a rendering failure
  * shows an error strip instead of a blank panel), registers the turn-tail
@@ -10,7 +10,7 @@
  */
 import { createElement } from 'react'
 import { createRoot, type Root } from 'react-dom/client'
-import type { Context } from '../context-types.ts'
+import type { Context, SidebarConversation } from '../context-types.ts'
 import { allLeaves, createSidebarStore, isAgentTabId } from './state.ts'
 import { createBetterSidebarService, matchUrlTarget } from './service.ts'
 import { revalidateChunksOnReactivate, setChunkModuleSystem } from './chunk-loader.ts'
@@ -52,11 +52,85 @@ export function apply(ctx: Context): void {
   // plugin's dictionaries into the shared locale registry. The disposers
   // run on fiber disposal, so re-activation (HMR) re-registers cleanly.
   attachLocale(ctx.locale)
+  // [archify] Drag a sidebar file onto the conversation composer: insert its
+  // absolute path at the caret (no @ prefix, selection replaced). Capture
+  // phase so we win before the composer's own drop handling; only act on
+  // drops that carry our dataTransfer marker and land on a textarea.
+  ctx.effect(() => {
+    const MIME = 'application/x-dsh-sidebar-path'
+    const pickPath = (dt: DataTransfer): string => {
+      try {
+        if (Array.from(dt.types).includes(MIME)) {
+          const value = dt.getData(MIME)
+          if (value !== '') return value
+        }
+      } catch { /* ignore */ }
+      try {
+        return dt.getData('text/plain') ?? ''
+      } catch {
+        return ''
+      }
+    }
+    const onDragover = (event: DragEvent): void => {
+      try {
+        const dt = event.dataTransfer
+        if (dt === null || !Array.from(dt.types).includes(MIME)) return
+        const target = event.target instanceof Element ? event.target : null
+        if (target === null || typeof target.closest !== 'function') return
+        if (target.closest('textarea') !== null || target.closest('[contenteditable=true]') !== null) {
+          event.preventDefault()
+          dt.dropEffect = 'copy'
+        }
+      } catch { /* ignore */ }
+    }
+    const onDrop = (event: DragEvent): void => {
+      try {
+        const dt = event.dataTransfer
+        if (dt === null || !Array.from(dt.types).includes(MIME)) return
+        const path = pickPath(dt)
+        if (path === '') return
+        const target = event.target instanceof Element ? event.target : null
+        if (target === null || typeof target.closest !== 'function') return
+        if (target.closest('textarea') === null && target.closest('[contenteditable=true]') === null) return
+        event.preventDefault()
+        event.stopPropagation()
+        const box = target.closest('textarea') as HTMLTextAreaElement | null
+        if (box === null) return
+        const snapshot = ctx.sessions?.list?.getSnapshot?.()
+        const sessionId = snapshot?.current
+        if (sessionId === undefined) return
+        const actx = ctx.sessions?.scope?.(sessionId)
+        if (actx === undefined) return
+        const conversation = ctx.get('conversation') as SidebarConversation | undefined
+        if (conversation === undefined) return
+        const input = conversation.input.for(actx)
+        const draft = input.state.getSnapshot().draft ?? ''
+        let start = typeof box.selectionStart === 'number' ? box.selectionStart : draft.length
+        let end = typeof box.selectionEnd === 'number' ? box.selectionEnd : start
+        if (start < 0) start = draft.length
+        if (end < start) end = start
+        const next = draft.slice(0, start) + path + draft.slice(end)
+        input.setDraft(next)
+        requestAnimationFrame(() => {
+          try {
+            box.focus()
+            box.setSelectionRange(start + path.length, start + path.length)
+          } catch { /* ignore */ }
+        })
+      } catch { /* a failed drop is a no-op */ }
+    }
+    document.addEventListener('dragover', onDragover, true)
+    document.addEventListener('drop', onDrop, true)
+    return () => {
+      document.removeEventListener('dragover', onDragover, true)
+      document.removeEventListener('drop', onDrop, true)
+    }
+  }, 'dsh-best-sidebar: sidebar-to-composer drop (absolute path at caret)')
   ctx.effect(() => {
     const offZh = ctx.locale.register(LOCALE_NS, 'zh', zh)
     const offEn = ctx.locale.register(LOCALE_NS, 'en', en)
     return () => { offZh(); offEn() }
-  }, 'dsh-better-sidebar: dictionaries')
+  }, 'dsh-best-sidebar: dictionaries')
   // One store instance per activation: production code creates it only here,
   // then hands it to the mounted panel and closes over it in the slot
   // registrations (the official createXXXStore() factory rule — no
@@ -93,19 +167,19 @@ export function apply(ctx: Context): void {
   // fiber disposal (HMR-safe).
   ctx.effect(
     () => registerBuiltins(ctx, service, { terminalTitle: () => terminalTitle }),
-    'dsh-better-sidebar: register built-in tabs and viewers',
+    'dsh-best-sidebar: register built-in tabs and viewers',
   )
   // A failure anywhere in the client lifecycle must never take the app down
   // silently: log with the plugin prefix and pin a visible diagnostic strip
   // to the page so a blank panel is never the only symptom.
   const fail = (phase: string, error: unknown): void => {
-    console.error(`[dsh-better-sidebar] ${phase} error:`, error)
+    console.error(`[dsh-best-sidebar] ${phase} error:`, error)
     try {
       const bar = document.createElement('div')
       bar.style.cssText = 'position:fixed;left:8px;bottom:8px;z-index:2147483000;max-width:70vw;padding:8px 12px;'
         + 'font:12px/1.5 ui-monospace,SFMono-Regular,Menlo,monospace;color:#f2a1a1;background:#1b1b22;'
         + 'border:1px solid #f2a1a1;border-radius:8px;white-space:pre-wrap'
-      bar.textContent = `[dsh-better-sidebar] ${phase} error: ${error instanceof Error ? error.message : String(error)}`
+      bar.textContent = `[dsh-best-sidebar] ${phase} error: ${error instanceof Error ? error.message : String(error)}`
       document.body.appendChild(bar)
     } catch {
       // Nothing left to report with.
@@ -175,7 +249,7 @@ export function apply(ctx: Context): void {
             return
           }
           layer.setAttribute('data-dsh-panel-host-degraded', '')
-          console.warn('[dsh-better-sidebar] panel host geometry mismatch — a page-level transform was detected; using degraded viewport sync')
+          console.warn('[dsh-best-sidebar] panel host geometry mismatch — a page-level transform was detected; using degraded viewport sync')
           // Track our own compensating translation so the loop judges the
           // UNCORRECTED geometry: clearing degraded mode must wait for the
           // ancestor transform to actually disappear — the frame right after
@@ -206,7 +280,7 @@ export function apply(ctx: Context): void {
         if (mounted || disposed) return
         try {
           host = document.createElement('div')
-          host.setAttribute('data-dsh-better-sidebar', '')
+          host.setAttribute('data-dsh-best-sidebar', '')
           document.body.appendChild(host)
           root = createRoot(host)
           root.render(createElement(RenderBoundary, { className: css.boundaryError }, createElement(Sidebar, { ctx, store: sidebarStore })))
@@ -251,7 +325,7 @@ export function apply(ctx: Context): void {
         offRemote?.()
         unmount()
       }
-    }, 'dsh-better-sidebar: sidebar mount')
+    }, 'dsh-best-sidebar: sidebar mount')
 
     ctx.effect(
       () => {
@@ -262,7 +336,7 @@ export function apply(ctx: Context): void {
           return undefined
         }
       },
-      'dsh-better-sidebar: turn-tail interception',
+      'dsh-best-sidebar: turn-tail interception',
     )
 
     ctx.effect(
@@ -274,7 +348,7 @@ export function apply(ctx: Context): void {
           return undefined
         }
       },
-      'dsh-better-sidebar: open-path interception',
+      'dsh-best-sidebar: open-path interception',
     )
 
     ctx.effect(
@@ -318,7 +392,7 @@ export function apply(ctx: Context): void {
           return undefined
         }
       },
-      'dsh-better-sidebar: link interception',
+      'dsh-best-sidebar: link interception',
     )
 
     // The IME guard: composition keys (candidate arrows, confirm, cancel)
@@ -338,7 +412,7 @@ export function apply(ctx: Context): void {
           return undefined
         }
       },
-      'dsh-better-sidebar: IME composition guard',
+      'dsh-best-sidebar: IME composition guard',
     )
 
     // DSH 0.1.x does not yet carry an icon through the settings.section
@@ -348,7 +422,7 @@ export function apply(ctx: Context): void {
     // the marker for HMR / plugin disable.
     ctx.effect(
       () => registerSettingsNavIcon(() => t('settingsNav')),
-      'dsh-better-sidebar: settings navigation icon',
+      'dsh-best-sidebar: settings navigation icon',
     )
 
     // The "Side card" settings section: appears in the DSH Settings shell

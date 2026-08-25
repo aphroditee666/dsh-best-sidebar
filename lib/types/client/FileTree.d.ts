@@ -15,6 +15,8 @@ export declare function FileTree(props: {
     onReferenceFile: (path: string) => void;
     /** Bump to wipe the level cache and reload the visible set. */
     refreshTick: number;
+    /** Bump the caller's refresh tick after creating a folder/file (archify). */
+    onRefresh?: () => void;
     /** Upload into `dir` (absolute, inside the workspace); runs in the caller. */
     onUploadRequest: (dir: string, items: UploadItem[]) => void;
     /** True while an upload is in flight (drops are ignored). */

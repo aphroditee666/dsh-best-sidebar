@@ -106,12 +106,14 @@ export function FileTree(props: {
   onReferenceFile: (path: string) => void
   /** Bump to wipe the level cache and reload the visible set. */
   refreshTick: number
+  /** Bump the caller's refresh tick after creating a folder/file (archify). */
+  onRefresh?: () => void
   /** Upload into `dir` (absolute, inside the workspace); runs in the caller. */
   onUploadRequest: (dir: string, items: UploadItem[]) => void
   /** True while an upload is in flight (drops are ignored). */
   busy: boolean
 }) {
-  const { sessionId, cwd, expanded, onToggle, onOpenFile, onOpenFileNewTab, onOpenFileSide, onReferenceFile, refreshTick, onUploadRequest, busy } = props
+  const { sessionId, cwd, expanded, onToggle, onOpenFile, onOpenFileNewTab, onOpenFileSide, onReferenceFile, refreshTick, onUploadRequest, busy, onRefresh } = props
   const [data, setData] = useState<Record<string, LevelData>>({})
   const dataRef = useRef(data)
   /** The row whose path was just copied ("copied" label replaces its button). */
@@ -333,6 +335,12 @@ export function FileTree(props: {
               onDragOver={(event) => { handleRowDragOver(event, entry.path) }}
               onDrop={(event) => { handleDirDrop(event, entry.path) }}
               onContextMenu={(event) => { openRowMenu(event, entry.path, true) }}
+              draggable
+              onDragStart={(event) => {
+                event.dataTransfer.setData('application/x-dsh-sidebar-path', entry.path)
+                event.dataTransfer.setData('text/plain', entry.path)
+                event.dataTransfer.effectAllowed = 'copy'
+              }}
             >
               {isOpen ? <IconFolderOpen16 size={14} /> : <IconFolderClose16 size={14} />}
               <span className={css.explorerName}>{entry.name}</span>
@@ -364,6 +372,12 @@ export function FileTree(props: {
           onDragOver={(event) => { handleRowDragOver(event, parentOf(entry.path)) }}
           onDrop={(event) => { handleFileDrop(event, entry.path) }}
           onContextMenu={(event) => { openRowMenu(event, entry.path, false) }}
+          draggable
+          onDragStart={(event) => {
+            event.dataTransfer.setData('application/x-dsh-sidebar-path', entry.path)
+            event.dataTransfer.setData('text/plain', entry.path)
+            event.dataTransfer.effectAllowed = 'copy'
+          }}
         >
           <IconCodeOutline16 size={14} />
           <span className={css.explorerName}>{entry.name}</span>
@@ -497,7 +511,11 @@ export function FileTree(props: {
             : []),
           // Upload into a directory (incl. the workspace root row).
           ...(rowMenu?.isDir === true
-            ? [{ id: 'upload-here', label: t('uploadHere'), icon: <IconUploadOutline16 size={14} /> }]
+            ? [
+                { id: 'new-folder', label: '新建文件夹', icon: <IconFolderOpen16 size={14} /> },
+                { id: 'new-file', label: '新建文件', icon: <IconCodeOutline16 size={14} /> },
+                { id: 'upload-here', label: t('uploadHere'), icon: <IconUploadOutline16 size={14} /> },
+              ]
             : []),
           { id: 'relative', label: t('copyRelative'), icon: <IconCopyOutline16 size={14} /> },
           { id: 'absolute', label: t('copyAbsolute'), icon: <IconCopyOutline16 size={14} /> },
@@ -521,6 +539,22 @@ export function FileTree(props: {
           if (id === 'upload-here') {
             pendingUploadDir.current = target.path
             fileInputRef.current?.click()
+            return
+          }
+          if (id === 'new-folder' || id === 'new-file') {
+            const isFolder = id === 'new-folder'
+            const name = window.prompt(isFolder ? '新建文件夹名称' : '新建文件名称')
+            if (name === null || name === '') return
+            const sep = target.path.includes('\\') ? '\\' : '/'
+            const child = target.path + sep + name
+            const request = isFolder
+              ? api.fsCreateDir({ sessionId, cwd }, child)
+              : api.fsWrite({ sessionId, cwd }, child, '')
+            void request
+              .then(() => { onRefresh?.() })
+              .catch((error: unknown) => {
+                window.alert((isFolder ? '创建文件夹失败：' : '创建文件失败：') + (error instanceof Error ? error.message : String(error)))
+              })
             return
           }
           copyPath(

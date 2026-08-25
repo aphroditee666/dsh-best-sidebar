@@ -9,7 +9,7 @@
  * dialog mounts. The marker owns no shell structure and is removed on fiber
  * disposal, so the adaptation remains HMR-safe.
  */
-export declare const SETTINGS_NAV_MARKER = "data-dsh-better-sidebar-settings-nav";
+export declare const SETTINGS_NAV_MARKER = "data-dsh-best-sidebar-settings-nav";
 /**
  * Keep the marker on the settings-nav button whose visible text is this
  * plugin's current localized section label.

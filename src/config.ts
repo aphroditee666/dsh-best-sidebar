@@ -2,7 +2,7 @@
  * Serializable configuration and defaults for the sidebar host half. Loader
  * schema validation normally fills defaults; {@link resolveSidebarConfig}
  * applies the same defaults for direct callers that bypass the Loader.
- * @module dsh-better-sidebar/config
+ * @module @aphroditee666/dsh-best-sidebar/config
  */
 
 import z from 'schemastery'

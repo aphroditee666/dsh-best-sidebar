@@ -14,7 +14,7 @@ dsh plugin --profile web add @aphroditee666/dsh-best-sidebar
 
 Restart the web profile afterwards (`dsh web`).
 
-The shipped `lib/` already contains the patches; `src/` is the upstream source. Rebuilding from `src` will drop the patches — do not rebuild; edit the shipped `lib/` artifacts and repack instead.
+This package's `src/` already contains the patches; the shipped `lib/` is built from it (`pnpm install && pnpm build` reproduces the patched assets with the new package id).
 
 ## License
 
