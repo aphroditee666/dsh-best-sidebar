@@ -517,6 +517,7 @@ export function FileTree(props: {
                 { id: 'upload-here', label: t('uploadHere'), icon: <IconUploadOutline16 size={14} /> },
               ]
             : []),
+          { id: 'reveal', label: '在文件管理器中打开', icon: <IconFolderOpen16 size={14} /> },
           { id: 'relative', label: t('copyRelative'), icon: <IconCopyOutline16 size={14} /> },
           { id: 'absolute', label: t('copyAbsolute'), icon: <IconCopyOutline16 size={14} /> },
         ]}
@@ -555,6 +556,12 @@ export function FileTree(props: {
               .catch((error: unknown) => {
                 window.alert((isFolder ? '创建文件夹失败：' : '创建文件失败：') + (error instanceof Error ? error.message : String(error)))
               })
+            return
+          }
+          if (id === 'reveal') {
+            api.fsReveal({ sessionId, cwd }, target.path).catch((error: unknown) => {
+              window.alert('无法在文件管理器中打开：' + (error instanceof Error ? error.message : String(error)))
+            })
             return
           }
           copyPath(

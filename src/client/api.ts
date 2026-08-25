@@ -190,6 +190,9 @@ export const api = {
   /** Create one directory (non-recursive); wire method `fs.createDirectory`. */
   fsCreateDir: (scope: SessionScope, path: string) =>
     call<{ ok: true }>('fs.createDirectory', scopePayload(scope, { path })),
+  /** Reveal a file/folder in the OS file manager; wire method `fs.reveal`. */
+  fsReveal: (scope: SessionScope, path: string) =>
+    call<{ ok: true }>('fs.reveal', scopePayload(scope, { path })),
   /** Upload one file's raw bytes into `dir` (keeps the folder tree via
    *  `relativePath`); the host streams it under the session workspace. */
   uploadFile: (scope: SessionScope, dir: string, relativePath: string, body: Blob, signal?: AbortSignal) =>

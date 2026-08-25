@@ -15,6 +15,7 @@
  */
 import { mkdir, open, readFile, rename, rm, stat, writeFile } from 'node:fs/promises'
 import { basename, dirname, extname, isAbsolute, join } from 'node:path'
+import { spawn } from 'node:child_process'
 import type { IncomingMessage } from 'node:http'
 import type { Duplex } from 'node:stream'
 import { WebSocket, WebSocketServer } from 'ws'
@@ -289,6 +290,26 @@ function buildApi(
         await mkdir(path, { recursive: false })
       } catch (error) {
         throw new SidebarError('fs-error', `cannot create directory "${path}": ${error instanceof Error ? error.message : String(error)}`, 400)
+      }
+      return { ok: true }
+    },
+    'fs.reveal': async (payload) => {
+      cwdOf(payload) // validate the session + cwd
+      const path = requireAbsolute(requireString(payload, 'path'))
+      // Reveal the entry in the OS file manager (select the file, open the
+      // folder). Spawn with an argument array (no shell) so the path can
+      // never be interpreted as a command; detached so we never wait on the
+      // file-manager process.
+      try {
+        if (process.platform === 'win32') {
+          spawn('explorer', [`/select,${path}`], { detached: true, stdio: 'ignore' }).unref()
+        } else if (process.platform === 'darwin') {
+          spawn('open', ['-R', path], { detached: true, stdio: 'ignore' }).unref()
+        } else {
+          spawn('xdg-open', [dirname(path)], { detached: true, stdio: 'ignore' }).unref()
+        }
+      } catch (error) {
+        throw new SidebarError('fs-error', `cannot reveal "${path}": ${error instanceof Error ? error.message : String(error)}`, 400)
       }
       return { ok: true }
     },
