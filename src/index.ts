@@ -293,6 +293,25 @@ function buildApi(
       }
       return { ok: true }
     },
+    'fs.open': async (payload) => {
+      cwdOf(payload) // validate the session + cwd
+      const path = requireAbsolute(requireString(payload, 'path'))
+      // Open with the OS default application (Excel/PPT/PDF/text etc.).
+      // Argument-array spawn (no shell interpolation): on Windows the shell
+      // built-in `start` needs cmd, so the path travels as one argv element.
+      try {
+        if (process.platform === 'win32') {
+          spawn('cmd', ['/c', 'start', '', path], { detached: true, stdio: 'ignore' }).unref()
+        } else if (process.platform === 'darwin') {
+          spawn('open', [path], { detached: true, stdio: 'ignore' }).unref()
+        } else {
+          spawn('xdg-open', [path], { detached: true, stdio: 'ignore' }).unref()
+        }
+      } catch (error) {
+        throw new SidebarError('fs-error', `cannot open "${path}": ${error instanceof Error ? error.message : String(error)}`, 400)
+      }
+      return { ok: true }
+    },
     'fs.reveal': async (payload) => {
       cwdOf(payload) // validate the session + cwd
       const path = requireAbsolute(requireString(payload, 'path'))

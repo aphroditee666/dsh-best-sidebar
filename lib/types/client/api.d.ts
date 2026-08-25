@@ -124,6 +124,10 @@ export declare const api: {
     fsReveal: (scope: SessionScope, path: string) => Promise<{
         ok: true;
     }>;
+    /** Open a file with the OS default application; wire method `fs.open`. */
+    fsOpen: (scope: SessionScope, path: string) => Promise<{
+        ok: true;
+    }>;
     /** Upload one file's raw bytes into `dir` (keeps the folder tree via
      *  `relativePath`); the host streams it under the session workspace. */
     uploadFile: (scope: SessionScope, dir: string, relativePath: string, body: Blob, signal?: AbortSignal) => Promise<{

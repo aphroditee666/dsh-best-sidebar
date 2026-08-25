@@ -193,6 +193,9 @@ export const api = {
   /** Reveal a file/folder in the OS file manager; wire method `fs.reveal`. */
   fsReveal: (scope: SessionScope, path: string) =>
     call<{ ok: true }>('fs.reveal', scopePayload(scope, { path })),
+  /** Open a file with the OS default application; wire method `fs.open`. */
+  fsOpen: (scope: SessionScope, path: string) =>
+    call<{ ok: true }>('fs.open', scopePayload(scope, { path })),
   /** Upload one file's raw bytes into `dir` (keeps the folder tree via
    *  `relativePath`); the host streams it under the session workspace. */
   uploadFile: (scope: SessionScope, dir: string, relativePath: string, body: Blob, signal?: AbortSignal) =>

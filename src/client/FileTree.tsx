@@ -507,7 +507,10 @@ export function FileTree(props: {
             : []),
           // Download applies to files only (the host route refuses directories).
           ...(rowMenu?.isDir === false
-            ? [{ id: 'download', label: t('download'), icon: <IconDownloadOutline16 size={14} /> }]
+            ? [
+                { id: 'open-in-app', label: '在应用中打开', icon: <IconDownloadOutline16 size={14} /> },
+                { id: 'download', label: t('download'), icon: <IconDownloadOutline16 size={14} /> },
+              ]
             : []),
           // Upload into a directory (incl. the workspace root row).
           ...(rowMenu?.isDir === true
@@ -535,6 +538,12 @@ export function FileTree(props: {
           }
           if (id === 'download') {
             downloadFile(target.path)
+            return
+          }
+          if (id === 'open-in-app') {
+            api.fsOpen({ sessionId, cwd }, target.path).catch((error: unknown) => {
+              window.alert('无法在应用中打开：' + (error instanceof Error ? error.message : String(error)))
+            })
             return
           }
           if (id === 'upload-here') {
